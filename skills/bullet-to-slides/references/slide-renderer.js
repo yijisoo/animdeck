@@ -52,6 +52,7 @@ const C = {
   SUB_DOT:         'DDDDDD',
   LOGO_GRAY:       '777777',
   VS_TEXT:         '0097A7',
+  CAPTION:         '999999',
 
   // Code text
   CODE_TEXT:       'E0E0E0',
@@ -72,11 +73,10 @@ const FONT_CODE = 'Courier New';
 // ---------------------------------------------------------------------------
 function parseInline(text, baseColor, baseFontSize) {
   const runs = [];
-  // Tokenize: **bold**, *italic*, `code`, plain
-  const re = /(\*\*(.+?)\*\*)|(\*(.+?)\*)|(` (.+?)` )/g;
   // Use a proper split approach
   const segments = [];
   let lastIndex = 0;
+  // Note: nested/overlapping formatting (e.g., **bold *italic***) is not supported
   const fullRe = /\*\*(.+?)\*\*|\*(.+?)\*|`(.+?)`/g;
   let match;
   while ((match = fullRe.exec(text)) !== null) {
@@ -99,7 +99,7 @@ function parseInline(text, baseColor, baseFontSize) {
   for (const seg of segments) {
     if (!seg.text) continue;
     if (seg.type === 'bold') {
-      runs.push({ text: seg.text, options: { bold: true, color: C.TEXT_ON_LIGHT, fontFace: FONT_BODY, fontSize: baseFontSize } });
+      runs.push({ text: seg.text, options: { bold: true, color: C.TEXT_ON_LIGHT, fontFace: FONT_BODY, fontSize: baseFontSize } }); // Hardcoded to light-bg color — only used on light slides
     } else if (seg.type === 'italic') {
       runs.push({ text: seg.text, options: { italic: true, color: baseColor, fontFace: FONT_BODY, fontSize: baseFontSize } });
     } else if (seg.type === 'code') {
@@ -248,7 +248,6 @@ function renderBodyItems(slide, items, startY, xOffset, maxW, depth) {
 function renderBullet(slide, item, y, x, w, depth) {
   const isSubBullet = depth > 0;
   const dotColor = isSubBullet ? C.SUB_DOT : C.BULLET_DOT;
-  const dotSize = isSubBullet ? 4 : 5;
   const textColor = isSubBullet ? C.SECONDARY : C.BODY;
   const fontSize = isSubBullet ? 12 : 13;
   const lineH = isSubBullet ? 0.22 : 0.25;
@@ -486,13 +485,10 @@ function renderContentSlide(pres, slideData, config, slideNum) {
   addReferencesFooter(slide, slideData.references);
 }
 
-function renderComparisonSlide(pres, slideData, config, slideNum) {
-  const slide = pres.addSlide();
-  slide.background = { color: C.LIGHT_BG };
-
-  addContentHeader(slide, slideData.title || '');
-  addSlideNumber(slide, slideNum);
-
+// ---------------------------------------------------------------------------
+// Shared two-column layout helper (used by comparison and split slides)
+// ---------------------------------------------------------------------------
+function renderTwoColumnSlide(slide, slideData, slideNum, { showVsBadge }) {
   // Two equal columns
   const colY = 1.0;
   const colH = 4.3;
@@ -529,22 +525,24 @@ function renderComparisonSlide(pres, slideData, config, slideNum) {
     color: C.WARM_LABEL, valign: 'middle',
   });
 
-  // "vs" badge: circle on column border
-  const badgeR = 0.18;
-  const badgeCX = centerX;
-  const badgeCY = colY + colH / 2;
-  slide.addShape('ellipse', {
-    x: badgeCX - badgeR, y: badgeCY - badgeR,
-    w: badgeR * 2, h: badgeR * 2,
-    fill: { color: C.LIGHT_BG },
-    line: { color: C.BORDER, pt: 1 },
-  });
-  slide.addText('vs', {
-    x: badgeCX - badgeR, y: badgeCY - badgeR,
-    w: badgeR * 2, h: badgeR * 2,
-    fontFace: FONT_BODY, fontSize: 9, bold: true,
-    color: C.VS_TEXT, align: 'center', valign: 'middle',
-  });
+  // Optional "vs" badge: circle on column border
+  if (showVsBadge) {
+    const badgeR = 0.18;
+    const badgeCX = centerX;
+    const badgeCY = colY + colH / 2;
+    slide.addShape('ellipse', {
+      x: badgeCX - badgeR, y: badgeCY - badgeR,
+      w: badgeR * 2, h: badgeR * 2,
+      fill: { color: C.LIGHT_BG },
+      line: { color: C.BORDER, pt: 1 },
+    });
+    slide.addText('vs', {
+      x: badgeCX - badgeR, y: badgeCY - badgeR,
+      w: badgeR * 2, h: badgeR * 2,
+      fontFace: FONT_BODY, fontSize: 9, bold: true,
+      color: C.VS_TEXT, align: 'center', valign: 'middle',
+    });
+  }
 
   // Column body content
   const itemY = colY + 0.5;
@@ -559,6 +557,16 @@ function renderComparisonSlide(pres, slideData, config, slideNum) {
   }
 }
 
+function renderComparisonSlide(pres, slideData, config, slideNum) {
+  const slide = pres.addSlide();
+  slide.background = { color: C.LIGHT_BG };
+
+  addContentHeader(slide, slideData.title || '');
+  addSlideNumber(slide, slideNum);
+
+  renderTwoColumnSlide(slide, slideData, slideNum, { showVsBadge: true });
+}
+
 function renderSplitSlide(pres, slideData, config, slideNum) {
   const slide = pres.addSlide();
   slide.background = { color: C.LIGHT_BG };
@@ -566,48 +574,7 @@ function renderSplitSlide(pres, slideData, config, slideNum) {
   addContentHeader(slide, slideData.title || '');
   addSlideNumber(slide, slideNum);
 
-  // Same as comparison but without "vs" badge
-  const colY = 1.0;
-  const colH = 4.3;
-  const colW = 4.3;
-  const leftX = 0.38;
-  const rightX = 5.32;
-
-  slide.addShape('rect', {
-    x: leftX, y: colY, w: colW, h: colH,
-    fill: { type: 'none' },
-    line: { color: C.BORDER, pt: 1 },
-  });
-  slide.addShape('rect', {
-    x: rightX, y: colY, w: colW, h: colH,
-    fill: { type: 'none' },
-    line: { color: C.BORDER, pt: 1 },
-  });
-
-  const leftLabel = slideData.left ? slideData.left.label || '' : '';
-  slide.addText(leftLabel, {
-    x: leftX + 0.12, y: colY + 0.1, w: colW - 0.24, h: 0.3,
-    fontFace: FONT_BODY, fontSize: 13, bold: true,
-    color: C.TEAL_LABEL, valign: 'middle',
-  });
-
-  const rightLabel = slideData.right ? slideData.right.label || '' : '';
-  slide.addText(rightLabel, {
-    x: rightX + 0.12, y: colY + 0.1, w: colW - 0.24, h: 0.3,
-    fontFace: FONT_BODY, fontSize: 13, bold: true,
-    color: C.WARM_LABEL, valign: 'middle',
-  });
-
-  const itemY = colY + 0.5;
-  const itemPadX = 0.12;
-  const itemW = colW - itemPadX * 2;
-
-  if (slideData.left && slideData.left.items) {
-    renderBodyItems(slide, slideData.left.items, itemY, leftX + itemPadX, itemW, 0);
-  }
-  if (slideData.right && slideData.right.items) {
-    renderBodyItems(slide, slideData.right.items, itemY, rightX + itemPadX, itemW, 0);
-  }
+  renderTwoColumnSlide(slide, slideData, slideNum, { showVsBadge: false });
 }
 
 function renderImageSlide(pres, slideData, config, slideNum) {
@@ -649,7 +616,7 @@ function renderImageSlide(pres, slideData, config, slideNum) {
   if (slideData.caption) {
     slide.addText(slideData.caption, {
       x: imgX, y: imgY + imgH + 0.08, w: imgW, h: 0.25,
-      fontFace: FONT_BODY, fontSize: 10, color: '999999',
+      fontFace: FONT_BODY, fontSize: 10, color: C.CAPTION,
       align: 'center',
     });
   }
