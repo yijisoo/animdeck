@@ -1,7 +1,7 @@
 ---
 description: Convert bullet-listed notes into a branded PowerPoint presentation
-allowed-tools: Read, Write, Edit, Bash(node:*), Bash(npm:*), Bash(ls:*), Bash(mkdir:*), Bash(cp:*), Bash(mv:*), Bash(libreoffice:*), Bash(pdftoppm:*), Task, Glob, Grep
-argument-hint: [bullet-list-text-or-file-path] or "help"
+allowed-tools: "Read, Write, Edit, Bash(node:*), Bash(npm:*), Bash(ls:*), Bash(mkdir:*), Bash(cp:*), Bash(mv:*), Bash(libreoffice:*), Bash(pdftoppm:*), Task, Glob, Grep"
+argument-hint: "bullet-list-text-or-file-path or help"
 ---
 
 Convert bullet-listed notes into a polished, evolvingselves-branded PowerPoint presentation.
