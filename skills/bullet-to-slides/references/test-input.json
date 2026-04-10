@@ -1,0 +1,251 @@
+{
+  "title": "The Uncertainty Beneath",
+  "config": {
+    "logo": "evolvingselves",
+    "author": "Ji Soo Yi",
+    "affiliation": "evolvingselves",
+    "date": "April 2026"
+  },
+  "slides": [
+    {
+      "type": "title",
+      "title": "The Uncertainty Beneath",
+      "subtitle": "Exploring the edges of self-knowledge"
+    },
+    {
+      "type": "section",
+      "title": "What We Know",
+      "number": 1
+    },
+    {
+      "type": "content",
+      "title": "Living with Not-Knowing",
+      "body": [
+        {
+          "kind": "bullet",
+          "text": "Most of our certainty is **borrowed** from others",
+          "animate": false,
+          "refs": [1],
+          "children": [
+            {
+              "kind": "bullet",
+              "text": "Social frameworks shape what feels *obvious*",
+              "animate": false,
+              "refs": null,
+              "children": []
+            },
+            {
+              "kind": "bullet",
+              "text": "Use `inquiry` to test inherited assumptions",
+              "animate": false,
+              "refs": null,
+              "children": []
+            }
+          ]
+        },
+        {
+          "kind": "bullet",
+          "text": "The ground shifts when you look directly at it",
+          "animate": true,
+          "refs": null,
+          "children": []
+        },
+        {
+          "kind": "quote",
+          "text": "The curious paradox is that when I accept myself just as I am, then I can change.",
+          "attribution": "Carl Rogers"
+        },
+        {
+          "kind": "code",
+          "language": "python",
+          "lines": [
+            "def inquire(assumption):",
+            "    evidence = gather_evidence(assumption)",
+            "    return weigh(evidence, openness=True)"
+          ]
+        }
+      ],
+      "references": [
+        { "id": 1, "text": "Berger & Luckmann, The Social Construction of Reality (1966)", "isUrl": false }
+      ],
+      "continuation": null
+    },
+    {
+      "type": "comparison",
+      "title": "Two Stances on Self-Doubt",
+      "left": {
+        "label": "Frozen anxiety",
+        "items": [
+          {
+            "kind": "bullet",
+            "text": "Avoids the unknown at all cost",
+            "animate": false,
+            "refs": null,
+            "children": []
+          },
+          {
+            "kind": "bullet",
+            "text": "Seeks certainty as **safety**",
+            "animate": false,
+            "refs": null,
+            "children": []
+          },
+          {
+            "kind": "bullet",
+            "text": "Collapses under contradiction",
+            "animate": false,
+            "refs": null,
+            "children": []
+          }
+        ]
+      },
+      "right": {
+        "label": "Active inquiry",
+        "items": [
+          {
+            "kind": "bullet",
+            "text": "Moves *toward* the unknown",
+            "animate": false,
+            "refs": null,
+            "children": []
+          },
+          {
+            "kind": "bullet",
+            "text": "Treats shakiness as **signal**",
+            "animate": false,
+            "refs": null,
+            "children": []
+          },
+          {
+            "kind": "bullet",
+            "text": "Updates gracefully",
+            "animate": false,
+            "refs": null,
+            "children": []
+          }
+        ]
+      }
+    },
+    {
+      "type": "split",
+      "title": "Inside vs. Outside View",
+      "left": {
+        "label": "From inside the doubt",
+        "items": [
+          {
+            "kind": "bullet",
+            "text": "Feels total and permanent",
+            "animate": false,
+            "refs": null,
+            "children": []
+          },
+          {
+            "kind": "bullet",
+            "text": "Evidence seems to confirm it",
+            "animate": false,
+            "refs": null,
+            "children": []
+          }
+        ]
+      },
+      "right": {
+        "label": "Stepping outside",
+        "items": [
+          {
+            "kind": "bullet",
+            "text": "Pattern is recognizable and temporary",
+            "animate": false,
+            "refs": null,
+            "children": []
+          },
+          {
+            "kind": "bullet",
+            "text": "Other interpretations become visible",
+            "animate": false,
+            "refs": null,
+            "children": []
+          }
+        ]
+      }
+    },
+    {
+      "type": "image",
+      "title": "The Topology of Uncertainty",
+      "src": "non-existent-image.jpg",
+      "caption": "A placeholder — replace with your actual diagram"
+    },
+    {
+      "type": "section",
+      "title": "Going Deeper",
+      "number": 2
+    },
+    {
+      "type": "content",
+      "title": "Practices for the Shaky Ground",
+      "body": [
+        {
+          "kind": "bullet",
+          "text": "**Name** the sensation before interpreting it",
+          "animate": false,
+          "refs": null,
+          "children": []
+        },
+        {
+          "kind": "bullet",
+          "text": "Ask: *what would I need to believe for this to feel true?*",
+          "animate": false,
+          "refs": null,
+          "children": []
+        },
+        {
+          "kind": "bullet",
+          "text": "Hold the question longer than is comfortable",
+          "animate": false,
+          "refs": [2],
+          "children": [
+            {
+              "kind": "bullet",
+              "text": "Comfort is often a sign you've stopped too soon",
+              "animate": false,
+              "refs": null,
+              "children": []
+            }
+          ]
+        }
+      ],
+      "references": [
+        { "id": 2, "text": "https://evolvingselves.com/inquiry", "isUrl": true }
+      ],
+      "continuation": null
+    },
+    {
+      "type": "content",
+      "title": "Summary",
+      "body": [
+        {
+          "kind": "bullet",
+          "text": "Self-doubt is information, not verdict",
+          "animate": false,
+          "refs": null,
+          "children": []
+        },
+        {
+          "kind": "bullet",
+          "text": "The **quality of your questions** determines what you find",
+          "animate": false,
+          "refs": null,
+          "children": []
+        },
+        {
+          "kind": "bullet",
+          "text": "Going deeper requires `courage`, not just method",
+          "animate": false,
+          "refs": null,
+          "children": []
+        }
+      ],
+      "references": [],
+      "continuation": null
+    }
+  ]
+}
