@@ -1,4 +1,4 @@
-# pptx-slides
+# md-anim-slides
 
 A Claude Code plugin that converts bullet-list markdown into PowerPoint presentations with **click-to-appear animations**.
 
@@ -15,7 +15,7 @@ A Claude Code plugin that converts bullet-list markdown into PowerPoint presenta
 Requires [Claude Code](https://docs.anthropic.com/en/docs/claude-code) and Node.js.
 
 ```bash
-claude plugin add /path/to/pptx-slides
+claude plugin add github:yijisoo/md-anim-slides
 ```
 
 ## Usage
@@ -36,6 +36,8 @@ claude plugin add /path/to/pptx-slides
 * ## Supervised Learning
 * What is Regression?
   * Predicts **continuous** values
+    * Uses mathematical functions to model relationships
+    * Common in forecasting and trend analysis
   * ++ **Linear regression** -- fits a line
   * ++ **Polynomial regression** -- fits a curve
   * > "All models are wrong, but some are useful." -- George Box

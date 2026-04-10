@@ -1,5 +1,5 @@
 {
-  "name": "pptx-slides",
+  "name": "md-anim-slides",
   "version": "1.0.0",
   "description": "A Claude Code plugin that converts bullet-list markdown into PowerPoint presentations with click-to-appear animations.",
   "scripts": {},
