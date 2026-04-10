@@ -1,0 +1,16 @@
+{
+  "name": "pptx-slides",
+  "version": "1.0.0",
+  "description": "A Claude Code plugin that converts bullet-list markdown into polished PowerPoint presentations with evolvingselves branding.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "dependencies": {
+    "pptxgenjs": "^4.0.1"
+  }
+}

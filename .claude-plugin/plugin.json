@@ -1,0 +1,9 @@
+{
+  "name": "pptx-slides",
+  "version": "1.0.0",
+  "description": "Convert bullet-listed notes into branded PowerPoint presentations",
+  "author": {
+    "name": "Ji Soo Yi"
+  },
+  "keywords": ["slides", "presentation", "pptx", "powerpoint", "evolvingselves"]
+}
