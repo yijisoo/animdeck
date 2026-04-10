@@ -29,7 +29,7 @@
 
 ```
 * # Title                           → No logo
-* # Title {logo: evolvingselves}    → Gradient wordmark
+* # Title {logo: My Company}        → Plain text logo
 * # Title {logo: KAIST}             → Plain text logo
 * # Title {logo: ![](path)}         → Image logo
 ```
@@ -37,7 +37,7 @@
 ## Title Slide Children (positional)
 
 ```
-* # Title {logo: evolvingselves}
+* # Title {logo: My Company}
   * Subtitle               ← 1st child = subtitle
   * Author Name             ← 2nd child = author
   * Affiliation             ← 3rd child = affiliation

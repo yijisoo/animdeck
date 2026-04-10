@@ -9,7 +9,7 @@ version: 1.0.0
 
 # Bullet-to-Slides
 
-Convert bullet-listed notes into polished evolvingselves-branded PowerPoint presentations using a two-phase pipeline: parse to JSON, then render to .pptx.
+Convert bullet-listed notes into polished PowerPoint presentations using a two-phase pipeline: parse to JSON, then render to .pptx.
 
 ## Two-Phase Pipeline
 
@@ -38,7 +38,7 @@ Each first-level bullet (`*`) starts a new slide. The prefix determines the type
 ### Title Slide Config Parsing
 
 Parse `{logo: value}` from the title text. Supported values:
-- `{logo: evolvingselves}` → gradient wordmark
+- `{logo: My Company}` → plain text logo
 - `{logo: KAIST}` → plain text logo
 - `{logo: ![](path/to/logo.png)}` → image logo
 - No `{logo:}` → no logo

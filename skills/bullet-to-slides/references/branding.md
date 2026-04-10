@@ -1,4 +1,4 @@
-# evolvingselves Branding Specification
+# Default Theme Specification
 
 All colors are 6-character hex (no `#` prefix) for PptxGenJS compatibility.
 
@@ -106,7 +106,6 @@ SF Mono/Fira Code because Courier New is universally available in PowerPoint.
 | Config | Rendering |
 |--------|-----------|
 | `null` | No logo |
-| `"evolvingselves"` | "evolving" in teal + "selves" in warm, lowercase, Inter 11pt SemiBold |
 | `"text string"` | Plain text, Inter 11pt SemiBold, `777777` |
 | `{"image": "path"}` | Image file, max height 0.3" |
 

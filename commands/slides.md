@@ -4,7 +4,7 @@ allowed-tools: "Read, Write, Edit, Bash(node:*), Bash(npm:*), Bash(ls:*), Bash(m
 argument-hint: "bullet-list-text-or-file-path or help"
 ---
 
-Convert bullet-listed notes into a polished, evolvingselves-branded PowerPoint presentation.
+Convert bullet-listed notes into a polished PowerPoint presentation.
 
 ## Modes
 

@@ -8,7 +8,7 @@ The contract between Claude's parser and the deterministic renderer.
 {
   "title": "string",
   "config": {
-    "logo": "evolvingselves" | "string" | {"image": "path"} | null,
+    "logo": "string" | {"image": "path"} | null,
     "author": "string" | null,
     "affiliation": "string" | null,
     "date": "string" | null

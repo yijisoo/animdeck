@@ -6,7 +6,7 @@
  * Usage: node slide-renderer.js input.json output.pptx
  *
  * Handles slide types: title, section, content, comparison, split, image
- * Branding: evolvingselves (see branding.md)
+ * Default theme: teal/warm accent palette (see branding.md)
  * PptxGenJS v4.x API
  *
  * Bullets are rendered as paragraphs within a single text box per group,
