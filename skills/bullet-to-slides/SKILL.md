@@ -99,7 +99,11 @@ When auto-splitting:
 Save the validated JSON to a temp file, then run:
 
 ```bash
+# Step 1: Render slides (also writes output.animation.json manifest)
 node ${CLAUDE_PLUGIN_ROOT}/skills/bullet-to-slides/references/slide-renderer.js input.json output.pptx
+
+# Step 2: Inject click-to-appear animations for ++ bullets
+node ${CLAUDE_PLUGIN_ROOT}/skills/bullet-to-slides/references/animation-injector.js output.pptx output.animation.json
 ```
 
 Ensure pptxgenjs is installed before rendering:
@@ -135,7 +139,7 @@ When they run `/slides help slides`, print a brief description of each slide typ
 
 ## Known Limitations
 
-- **Animations**: PptxGenJS does not support click-to-appear animations natively. Bullets marked with `++` will render as normal text. Users can add animations manually in PowerPoint after generation.
+- **Animations**: Bullets marked with `++` get click-to-appear animations via post-processing (animation-injector.js). A `++` bullet and its children appear together on one click. Multiple `++` bullets each get their own click in sequence.
 - **Nested inline markdown**: Overlapping formatting like `**bold *italic***` is not supported. Keep formatting simple and non-overlapping.
 - **Inter font**: The renderer uses Inter. If Inter is not installed on the machine opening the .pptx, PowerPoint will substitute Calibri automatically.
 
@@ -146,6 +150,7 @@ When they run `/slides help slides`, print a brief description of each slide typ
 3. Validate JSON (overflow, references, images)
 4. Report any issues to user, auto-split if needed
 5. Save JSON to temp file
-6. Run `slide-renderer.js input.json output.pptx`
-7. QA: convert to images and inspect (if tools available)
-8. Save final .pptx to workspace
+6. Run `slide-renderer.js input.json output.pptx` (also writes animation manifest)
+7. Run `animation-injector.js output.pptx output.animation.json` (injects click-to-appear for `++` bullets)
+8. QA: convert to images and inspect (if tools available)
+9. Save final .pptx to workspace

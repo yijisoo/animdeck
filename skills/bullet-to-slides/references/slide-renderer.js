@@ -9,10 +9,10 @@
  * Branding: evolvingselves (see branding.md)
  * PptxGenJS v4.x API
  *
- * NOTE ON ANIMATIONS: PptxGenJS v4 does not expose a public addAnimation()
- * method on slides. The animate:true flag on bullets is recorded as a comment
- * in the file but is not rendered as a click-to-appear animation. A future
- * implementation could manipulate the raw XML via a post-processing step.
+ * Bullets are rendered as paragraphs within a single text box per group,
+ * enabling easy editing in PowerPoint and per-paragraph animation injection.
+ * An animation manifest (output.animation.json) is written alongside the .pptx
+ * for use by animation-injector.js.
  */
 
 const fs = require('fs');
@@ -68,15 +68,49 @@ const FONT_BODY = 'Inter';
 const FONT_CODE = 'Courier New';
 
 // ---------------------------------------------------------------------------
+// Animation manifest tracking
+// ---------------------------------------------------------------------------
+let animationManifest = { slides: [] };
+
+function resetManifest() {
+  animationManifest = { slides: [] };
+}
+
+function trackAnimations(slideIndex, shapeName, flatParagraphs) {
+  const clickMap = new Map();
+
+  flatParagraphs.forEach((para, idx) => {
+    if (para.clickGroup != null) {
+      if (!clickMap.has(para.clickGroup)) {
+        clickMap.set(para.clickGroup, []);
+      }
+      clickMap.get(para.clickGroup).push(idx);
+    }
+  });
+
+  if (clickMap.size === 0) return;
+
+  const clicks = Array.from(clickMap.entries())
+    .sort((a, b) => a[0] - b[0])
+    .map(([_, indices]) => indices);
+
+  let slideEntry = animationManifest.slides.find(s => s.slideIndex === slideIndex);
+  if (!slideEntry) {
+    slideEntry = { slideIndex, shapes: [] };
+    animationManifest.slides.push(slideEntry);
+  }
+
+  slideEntry.shapes.push({ name: shapeName, clicks });
+}
+
+// ---------------------------------------------------------------------------
 // Inline markdown parser
 // Parses **bold**, *italic*, `code` into PptxGenJS text run arrays.
 // ---------------------------------------------------------------------------
 function parseInline(text, baseColor, baseFontSize) {
   const runs = [];
-  // Use a proper split approach
   const segments = [];
   let lastIndex = 0;
-  // Note: nested/overlapping formatting (e.g., **bold *italic***) is not supported
   const fullRe = /\*\*(.+?)\*\*|\*(.+?)\*|`(.+?)`/g;
   let match;
   while ((match = fullRe.exec(text)) !== null) {
@@ -99,7 +133,7 @@ function parseInline(text, baseColor, baseFontSize) {
   for (const seg of segments) {
     if (!seg.text) continue;
     if (seg.type === 'bold') {
-      runs.push({ text: seg.text, options: { bold: true, color: C.TEXT_ON_LIGHT, fontFace: FONT_BODY, fontSize: baseFontSize } }); // Hardcoded to light-bg color — only used on light slides
+      runs.push({ text: seg.text, options: { bold: true, color: C.TEXT_ON_LIGHT, fontFace: FONT_BODY, fontSize: baseFontSize } });
     } else if (seg.type === 'italic') {
       runs.push({ text: seg.text, options: { italic: true, color: baseColor, fontFace: FONT_BODY, fontSize: baseFontSize } });
     } else if (seg.type === 'code') {
@@ -122,14 +156,12 @@ function addLogo(slide, logo, x, y) {
   if (!logo) return;
 
   if (logo === 'evolvingselves') {
-    // "evolving" in teal, "selves" in warm, Inter 11pt SemiBold
     slide.addText([
       { text: 'evolving', options: { color: C.TEAL,       fontFace: FONT_BODY, fontSize: 11, bold: true } },
       { text: 'selves',   options: { color: C.WARM,       fontFace: FONT_BODY, fontSize: 11, bold: true } },
     ], { x, y, w: 1.8, h: 0.25, valign: 'middle' });
 
   } else if (typeof logo === 'string') {
-    // Plain text logo
     slide.addText(logo, {
       x, y, w: 2.5, h: 0.25,
       fontFace: FONT_BODY, fontSize: 11, bold: true,
@@ -137,12 +169,10 @@ function addLogo(slide, logo, x, y) {
     });
 
   } else if (logo && typeof logo === 'object' && logo.image) {
-    // Image logo
     const imgOpts = { x, y, h: 0.3, sizing: { type: 'contain', h: 0.3 } };
     if (fs.existsSync(logo.image)) {
       slide.addImage({ path: logo.image, ...imgOpts });
     } else {
-      // Fallback to text if image not found
       slide.addText('[logo]', {
         x, y, w: 1.5, h: 0.25,
         fontFace: FONT_BODY, fontSize: 11,
@@ -154,17 +184,14 @@ function addLogo(slide, logo, x, y) {
 
 // ---------------------------------------------------------------------------
 // Shared header for content/comparison/split/image slides
-// Teal accent bar + title text
 // ---------------------------------------------------------------------------
 function addContentHeader(slide, title) {
-  // Teal vertical accent bar: 0.03" wide, 0.24" tall, x=0.38, y=0.32
   slide.addShape('rect', {
     x: 0.38, y: 0.32, w: 0.03, h: 0.24,
     fill: { color: C.TEAL },
     line: { type: 'none' },
   });
 
-  // Title: Inter 22pt bold, #111111, x=0.56, y=0.28
   slide.addText(title, {
     x: 0.56, y: 0.28, w: 9.0, h: 0.45,
     fontFace: FONT_BODY, fontSize: 22, bold: true,
@@ -189,14 +216,12 @@ function addSlideNumber(slide, num) {
 function addReferencesFooter(slide, references) {
   if (!references || references.length === 0) return;
 
-  // Thin separator line
   slide.addShape('rect', {
     x: 0.56, y: 5.05, w: 8.88, h: 0.01,
     fill: { color: C.BORDER },
     line: { type: 'none' },
   });
 
-  // Build reference text runs
   const runs = [];
   for (let i = 0; i < references.length; i++) {
     const ref = references[i];
@@ -216,84 +241,165 @@ function addReferencesFooter(slide, references) {
 }
 
 // ---------------------------------------------------------------------------
-// Body item renderer
-// Returns the new y position after rendering items.
+// Body item grouping — consecutive bullets share a single text box
 // ---------------------------------------------------------------------------
-function renderBodyItems(slide, items, startY, xOffset, maxW, depth) {
-  if (!items || items.length === 0) return startY;
-  depth = depth || 0;
+function groupBodyItems(items) {
+  const groups = [];
+  let currentBullets = [];
 
-  let y = startY;
-  const indent = depth * 0.24;
-  const itemX = xOffset + indent;
-  const itemW = maxW - indent;
+  function flush() {
+    if (currentBullets.length > 0) {
+      groups.push({ type: 'bullets', items: [...currentBullets] });
+      currentBullets = [];
+    }
+  }
 
   for (const item of items) {
     if (!item) continue;
-
     if (item.kind === 'bullet') {
-      y = renderBullet(slide, item, y, itemX, itemW, depth);
-    } else if (item.kind === 'quote') {
-      y = renderQuote(slide, item, y, itemX, itemW);
-    } else if (item.kind === 'code') {
-      y = renderCodeBlock(slide, item, y, itemX, itemW);
-    } else if (item.kind === 'image') {
-      y = renderBodyImage(slide, item, y, itemX, itemW);
+      currentBullets.push(item);
+    } else {
+      flush();
+      groups.push({ type: item.kind, item });
+    }
+  }
+  flush();
+
+  return groups;
+}
+
+// ---------------------------------------------------------------------------
+// Flatten bullet tree into paragraph list with click groups
+//
+// Rules:
+// - Each ++ bullet starts a new click group (appears on its own click)
+// - Non-++ children of a ++ bullet inherit the same click group
+// - A ++ child within a ++ parent starts yet another click group
+// - Non-animated bullets with no animated ancestor have clickGroup = null
+// ---------------------------------------------------------------------------
+function flattenBullets(items, depth, inheritedClickGroup, counter) {
+  const result = [];
+
+  for (const item of items) {
+    if (!item) continue;
+    let clickGroup = inheritedClickGroup;
+
+    if (item.animate) {
+      counter.value++;
+      clickGroup = counter.value;
+    }
+
+    result.push({
+      text: item.text || '',
+      depth,
+      clickGroup,
+      refs: item.refs || [],
+    });
+
+    if (item.children && item.children.length > 0) {
+      result.push(...flattenBullets(item.children, depth + 1, clickGroup, counter));
+    }
+  }
+
+  return result;
+}
+
+// ---------------------------------------------------------------------------
+// Render a group of bullets as a single multi-paragraph text box
+// ---------------------------------------------------------------------------
+function renderBulletGroup(slide, flatParas, x, y, w, objectName) {
+  const allRuns = [];
+
+  for (let i = 0; i < flatParas.length; i++) {
+    const para = flatParas[i];
+    const isSubBullet = para.depth > 0;
+    const textColor = isSubBullet ? C.SECONDARY : C.BODY;
+    const fontSize = isSubBullet ? 12 : 13;
+    const bulletColor = isSubBullet ? C.SUB_DOT : C.BULLET_DOT;
+
+    const runs = parseInline(para.text, textColor, fontSize);
+
+    // Append ref markers
+    if (para.refs && para.refs.length > 0) {
+      runs.push({
+        text: ' ' + para.refs.map(r => `[${r}]`).join(''),
+        options: { fontSize: 8, color: C.MUTED, fontFace: FONT_BODY }
+      });
+    }
+
+    // Set paragraph-level options on first run
+    runs[0].options = {
+      ...runs[0].options,
+      bullet: { code: '2022', color: bulletColor },
+      indentLevel: para.depth,
+      paraSpaceBefore: i === 0 ? 0 : 3,
+    };
+
+    // breakLine on last run ends this paragraph (except for the final paragraph)
+    if (i < flatParas.length - 1) {
+      runs[runs.length - 1].options = {
+        ...runs[runs.length - 1].options,
+        breakLine: true,
+      };
+    }
+
+    allRuns.push(...runs);
+  }
+
+  // Estimate height: ~0.28" per top-level, 0.24" per sub-level (includes spacing)
+  let h = 0;
+  for (const para of flatParas) {
+    h += para.depth > 0 ? 0.24 : 0.28;
+  }
+  h = Math.max(h, 0.3);
+
+  slide.addText(allRuns, {
+    x, y, w, h,
+    valign: 'top',
+    wrap: true,
+    objectName,
+  });
+
+  return y + h;
+}
+
+// ---------------------------------------------------------------------------
+// Main body renderer — replaces old renderBodyItems
+// Groups consecutive bullets into single text boxes, renders others as shapes
+// ---------------------------------------------------------------------------
+function renderBody(slide, items, startY, xOffset, maxW, slideIndex, namePrefix) {
+  if (!items || items.length === 0) return startY;
+
+  const groups = groupBodyItems(items);
+  let y = startY;
+  let groupIdx = 0;
+  const clickCounter = { value: 0 };
+
+  for (const group of groups) {
+    if (group.type === 'bullets') {
+      const flatParas = flattenBullets(group.items, 0, null, clickCounter);
+      const shapeName = `${namePrefix}_${groupIdx}`;
+      groupIdx++;
+
+      y = renderBulletGroup(slide, flatParas, xOffset, y, maxW, shapeName);
+      trackAnimations(slideIndex, shapeName, flatParas);
+    } else if (group.type === 'quote') {
+      y = renderQuote(slide, group.item, y, xOffset, maxW);
+    } else if (group.type === 'code') {
+      y = renderCodeBlock(slide, group.item, y, xOffset, maxW);
+    } else if (group.type === 'image') {
+      y = renderBodyImage(slide, group.item, y, xOffset, maxW);
     }
   }
 
   return y;
 }
 
-function renderBullet(slide, item, y, x, w, depth) {
-  const isSubBullet = depth > 0;
-  const dotColor = isSubBullet ? C.SUB_DOT : C.BULLET_DOT;
-  const textColor = isSubBullet ? C.SECONDARY : C.BODY;
-  const fontSize = isSubBullet ? 12 : 13;
-  const lineH = isSubBullet ? 0.22 : 0.25;
-
-  // Bullet dot (small circle)
-  const dotR = isSubBullet ? 0.035 : 0.04;
-  slide.addShape('ellipse', {
-    x: x + 0.02,
-    y: y + lineH / 2 - dotR,
-    w: dotR * 2,
-    h: dotR * 2,
-    fill: { color: dotColor },
-    line: { type: 'none' },
-  });
-
-  // Bullet text (with inline markdown)
-  const textX = x + 0.18;
-  const textW = w - 0.18;
-  const runs = parseInline(item.text || '', textColor, fontSize);
-
-  // Append ref markers if present
-  if (item.refs && item.refs.length > 0) {
-    runs.push({ text: ' ' + item.refs.map(r => `[${r}]`).join(''), options: { fontSize: 8, color: C.MUTED, fontFace: FONT_BODY } });
-  }
-
-  // Note: animate:true is not implemented (PptxGenJS v4 has no public animation API)
-  slide.addText(runs, {
-    x: textX, y, w: textW, h: lineH,
-    fontFace: FONT_BODY, fontSize,
-    valign: 'middle', wrap: true,
-  });
-
-  y += lineH;
-
-  // Render children recursively
-  if (item.children && item.children.length > 0) {
-    y = renderBodyItems(slide, item.children, y, x + 0.24, w - 0.24, depth + 1);
-  }
-
-  return y;
-}
-
+// ---------------------------------------------------------------------------
+// Non-bullet body item renderers (quote, code, image)
+// ---------------------------------------------------------------------------
 function renderQuote(slide, item, y, x, w) {
-  const lineH = 0.05;
   const quoteH = 0.35;
-  const totalH = quoteH + (item.attribution ? 0.2 : 0);
 
   // Warm left border
   slide.addShape('rect', {
@@ -303,7 +409,7 @@ function renderQuote(slide, item, y, x, w) {
   });
 
   // Quote text (italic)
-  slide.addText(`"${item.text}"`, {
+  slide.addText(`\u201C${item.text}\u201D`, {
     x: x + 0.12, y, w: w - 0.12, h: quoteH,
     fontFace: FONT_BODY, fontSize: 13, italic: true,
     color: C.BODY, valign: 'middle', wrap: true,
@@ -313,7 +419,7 @@ function renderQuote(slide, item, y, x, w) {
 
   // Attribution
   if (item.attribution) {
-    slide.addText(`— ${item.attribution}`, {
+    slide.addText(`\u2014 ${item.attribution}`, {
       x: x + 0.12, y, w: w - 0.12, h: 0.2,
       fontFace: FONT_BODY, fontSize: 11,
       color: C.SECONDARY, valign: 'middle',
@@ -321,7 +427,7 @@ function renderQuote(slide, item, y, x, w) {
     y += 0.2;
   }
 
-  y += lineH;
+  y += 0.05;
   return y;
 }
 
@@ -377,7 +483,7 @@ function renderBodyImage(slide, item, y, x, w) {
     y += 0.05;
     slide.addText(item.caption, {
       x, y, w, h: 0.2,
-      fontFace: FONT_BODY, fontSize: 10, color: C.MUTED,
+      fontFace: FONT_BODY, fontSize: 10, color: C.CAPTION,
       align: 'center',
     });
     y += 0.2;
@@ -395,21 +501,19 @@ function renderTitleSlide(pres, slideData, config, slideNum) {
   const slide = pres.addSlide();
   slide.background = { color: C.DARK_BG };
 
-  // Title
   slide.addText(slideData.title || '', {
     x: 0, y: 1.8, w: W, h: 0.7,
     fontFace: FONT_BODY, fontSize: 34, bold: true,
     color: C.TEXT_ON_DARK, align: 'center', valign: 'middle',
   });
 
-  // Teal accent line: 0.8" wide, 0.02" tall, centered below title
+  // Teal accent line
   slide.addShape('rect', {
     x: (W - 0.8) / 2, y: 2.6, w: 0.8, h: 0.02,
     fill: { color: C.TEAL },
     line: { type: 'none' },
   });
 
-  // Subtitle
   if (slideData.subtitle) {
     slide.addText(slideData.subtitle, {
       x: 0.5, y: 3.0, w: W - 1, h: 0.45,
@@ -418,13 +522,11 @@ function renderTitleSlide(pres, slideData, config, slideNum) {
     });
   }
 
-  // Logo: bottom-left x=0.4, y=5.1
   addLogo(slide, config.logo, 0.4, 5.1);
 
-  // Footer: author + affiliation + date, bottom-right x=7.5, y=5.1
   const footerParts = [config.author, config.affiliation, config.date].filter(Boolean);
   if (footerParts.length > 0) {
-    slide.addText(footerParts.join('  ·  '), {
+    slide.addText(footerParts.join('  \u00B7  '), {
       x: 4.5, y: 5.1, w: 5.3, h: 0.3,
       fontFace: FONT_BODY, fontSize: 10,
       color: C.FOOTER, align: 'right', valign: 'middle',
@@ -436,21 +538,19 @@ function renderSectionSlide(pres, slideData, config, slideNum) {
   const slide = pres.addSlide();
   slide.background = { color: C.DARK_BG };
 
-  // Warm accent line: 0.5" wide, 0.02" tall, centered above title
+  // Warm accent line
   slide.addShape('rect', {
     x: (W - 0.5) / 2, y: 2.1, w: 0.5, h: 0.02,
     fill: { color: C.WARM },
     line: { type: 'none' },
   });
 
-  // Section title: Inter 32pt bold, centered, y=2.5
   slide.addText(slideData.title || '', {
     x: 0.5, y: 2.3, w: W - 1, h: 0.65,
     fontFace: FONT_BODY, fontSize: 32, bold: true,
     color: C.TEXT_ON_DARK, align: 'center', valign: 'middle',
   });
 
-  // Section number: zero-padded, centered below title
   if (slideData.number !== undefined) {
     const numStr = String(slideData.number).padStart(2, '0');
     slide.addText(numStr, {
@@ -466,7 +566,6 @@ function renderContentSlide(pres, slideData, config, slideNum) {
   const slide = pres.addSlide();
   slide.background = { color: C.LIGHT_BG };
 
-  // Build title with continuation suffix
   let title = slideData.title || '';
   if (slideData.continuation) {
     title += ` (${slideData.continuation.part}/${slideData.continuation.of})`;
@@ -475,29 +574,27 @@ function renderContentSlide(pres, slideData, config, slideNum) {
   addContentHeader(slide, title);
   addSlideNumber(slide, slideNum);
 
-  // Body area: starts y=1.0, x=0.56, width=8.88"
   const bodyX = 0.56;
   const bodyY = 1.0;
   const bodyW = 8.88;
 
-  renderBodyItems(slide, slideData.body, bodyY, bodyX, bodyW, 0);
+  renderBody(slide, slideData.body, bodyY, bodyX, bodyW, slideNum, 'body');
 
   addReferencesFooter(slide, slideData.references);
 }
 
 // ---------------------------------------------------------------------------
-// Shared two-column layout helper (used by comparison and split slides)
+// Shared two-column layout helper (comparison and split slides)
 // ---------------------------------------------------------------------------
 function renderTwoColumnSlide(slide, slideData, slideNum, { showVsBadge }) {
-  // Two equal columns
   const colY = 1.0;
   const colH = 4.3;
   const colW = 4.3;
   const leftX = 0.38;
   const rightX = 5.32;
-  const centerX = leftX + colW;  // column border x
+  const centerX = leftX + colW;
 
-  // Column borders (outer rectangles with border)
+  // Column borders
   slide.addShape('rect', {
     x: leftX, y: colY, w: colW, h: colH,
     fill: { type: 'none' },
@@ -509,7 +606,7 @@ function renderTwoColumnSlide(slide, slideData, slideNum, { showVsBadge }) {
     line: { color: C.BORDER, pt: 1 },
   });
 
-  // Left label: Inter 13pt SemiBold, teal, sentence case
+  // Left label
   const leftLabel = slideData.left ? slideData.left.label || '' : '';
   slide.addText(leftLabel, {
     x: leftX + 0.12, y: colY + 0.1, w: colW - 0.24, h: 0.3,
@@ -517,7 +614,7 @@ function renderTwoColumnSlide(slide, slideData, slideNum, { showVsBadge }) {
     color: C.TEAL_LABEL, valign: 'middle',
   });
 
-  // Right label: Inter 13pt SemiBold, warm
+  // Right label
   const rightLabel = slideData.right ? slideData.right.label || '' : '';
   slide.addText(rightLabel, {
     x: rightX + 0.12, y: colY + 0.1, w: colW - 0.24, h: 0.3,
@@ -525,7 +622,7 @@ function renderTwoColumnSlide(slide, slideData, slideNum, { showVsBadge }) {
     color: C.WARM_LABEL, valign: 'middle',
   });
 
-  // Optional "vs" badge: circle on column border
+  // Optional "vs" badge
   if (showVsBadge) {
     const badgeR = 0.18;
     const badgeCX = centerX;
@@ -550,10 +647,10 @@ function renderTwoColumnSlide(slide, slideData, slideNum, { showVsBadge }) {
   const itemW = colW - itemPadX * 2;
 
   if (slideData.left && slideData.left.items) {
-    renderBodyItems(slide, slideData.left.items, itemY, leftX + itemPadX, itemW, 0);
+    renderBody(slide, slideData.left.items, itemY, leftX + itemPadX, itemW, slideNum, 'left');
   }
   if (slideData.right && slideData.right.items) {
-    renderBodyItems(slide, slideData.right.items, itemY, rightX + itemPadX, itemW, 0);
+    renderBody(slide, slideData.right.items, itemY, rightX + itemPadX, itemW, slideNum, 'right');
   }
 }
 
@@ -584,7 +681,6 @@ function renderImageSlide(pres, slideData, config, slideNum) {
   addContentHeader(slide, slideData.title || '');
   addSlideNumber(slide, slideNum);
 
-  // Large image area: x=0.56, y=1.0, w=8.88"
   const imgX = 0.56;
   const imgY = 1.0;
   const imgW = 8.88;
@@ -598,7 +694,6 @@ function renderImageSlide(pres, slideData, config, slideNum) {
       sizing: { type: 'contain', w: imgW, h: imgH },
     });
   } else {
-    // Placeholder
     slide.addShape('roundRect', {
       x: imgX, y: imgY, w: imgW, h: imgH,
       rectRadius: 0.05,
@@ -612,7 +707,6 @@ function renderImageSlide(pres, slideData, config, slideNum) {
     });
   }
 
-  // Caption
   if (slideData.caption) {
     slide.addText(slideData.caption, {
       x: imgX, y: imgY + imgH + 0.08, w: imgW, h: 0.25,
@@ -626,6 +720,8 @@ function renderImageSlide(pres, slideData, config, slideNum) {
 // Main render function
 // ---------------------------------------------------------------------------
 function renderDeck(deckJson, outputPath) {
+  resetManifest();
+
   const pres = new PptxGenJS();
   pres.layout = 'LAYOUT_16x9';
 
@@ -658,6 +754,11 @@ function renderDeck(deckJson, outputPath) {
         console.warn(`Unknown slide type: ${slideData.type} (slide ${slideNum}) — skipped`);
     }
   }
+
+  // Write manifest alongside the pptx
+  const manifestPath = outputPath.replace(/\.pptx$/i, '.animation.json');
+  fs.writeFileSync(manifestPath, JSON.stringify(animationManifest, null, 2));
+  console.log(`Animation manifest: ${manifestPath}`);
 
   return pres.writeFile({ fileName: outputPath });
 }
