@@ -92,6 +92,20 @@ The JSON step is the validation and iteration point -- Claude checks for overflo
 - **pptxgenjs** -- installed automatically on first run
 - **LibreOffice** (optional) -- for QA image conversion
 
+## Development
+
+If you've installed this plugin via a local-directory marketplace (e.g. for in-place editing), Claude Code maintains a separate cache at `~/.claude/plugins/cache/local-plugins/md-anim-slides/<version>/` that does **not** auto-refresh when you edit source files. Edits to `skills/`, `commands/`, or references will not take effect until the cache is updated.
+
+After editing, run:
+
+```bash
+npm run sync
+```
+
+This rsyncs source → cache, so the next `/slides` invocation picks up the latest renderer, SKILL.md, and references.
+
+If you bump the version in `package.json` and `.claude-plugin/plugin.json`, also update the cache path inside the `sync` script to match the new version.
+
 ## License
 
 ISC

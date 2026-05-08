@@ -2,7 +2,9 @@
   "name": "md-anim-slides",
   "version": "1.0.0",
   "description": "A Claude Code plugin that converts bullet-list markdown into PowerPoint presentations with click-to-appear animations.",
-  "scripts": {},
+  "scripts": {
+    "sync": "rsync -av --delete --exclude=node_modules --exclude=.git --exclude='*.pptx' --exclude='*.animation.json' ./ \"$HOME/.claude/plugins/cache/local-plugins/md-anim-slides/1.0.0/\" && echo \"✓ Synced source → Claude plugin cache\""
+  },
   "keywords": ["slides", "pptx", "powerpoint", "markdown", "animation"],
   "author": "Ji Soo Yi",
   "license": "ISC",
