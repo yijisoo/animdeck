@@ -44,6 +44,7 @@ const C = {
   WARM_DEEP:       'FF6E40',
   TEAL_LABEL:      '0097A7',
   WARM_LABEL:      'E65100',
+  QUOTE_BG:        'FFF3E0',  // light orange background for quote blocks
 
   // Structural
   BORDER:          'E5E5E5',
@@ -64,8 +65,9 @@ const W = 10;       // inches
 const H = 5.625;    // inches
 
 // Typography
-const FONT_BODY = 'Inter';
-const FONT_CODE = 'Courier New';
+const FONT_BODY  = 'Inter';
+const FONT_CODE  = 'Courier New';
+const FONT_QUOTE = 'Georgia';
 
 // ---------------------------------------------------------------------------
 // Animation manifest tracking
@@ -187,7 +189,7 @@ function addLogo(slide, logo, x, y) {
 // ---------------------------------------------------------------------------
 function addContentHeader(slide, title) {
   slide.addShape('rect', {
-    x: 0.38, y: 0.32, w: 0.03, h: 0.24,
+    x: 0.38, y: 0.28, w: 0.03, h: 0.45,
     fill: { color: C.TEAL },
     line: { type: 'none' },
   });
@@ -256,7 +258,8 @@ function groupBodyItems(items) {
 
   for (const item of items) {
     if (!item) continue;
-    if (item.kind === 'bullet') {
+    if (item.kind === 'bullet' || item.kind === 'quote') {
+      // Quotes flow inline with bullets — same text box, distinct styling
       currentBullets.push(item);
     } else {
       flush();
@@ -279,14 +282,41 @@ function groupBodyItems(items) {
 // ---------------------------------------------------------------------------
 function flattenBullets(items, depth, inheritedClickGroup, counter) {
   const result = [];
+  // Track the most recent click group so non-++ bullets after a ++ bullet
+  // ride along on the same click rather than appearing instantly.
+  let lastClickGroup = inheritedClickGroup;
 
   for (const item of items) {
     if (!item) continue;
-    let clickGroup = inheritedClickGroup;
 
+    if (item.kind === 'quote') {
+      let clickGroup;
+      if (item.animate) {
+        counter.value++;
+        clickGroup = counter.value;
+        lastClickGroup = clickGroup;
+      } else {
+        clickGroup = lastClickGroup;
+      }
+      result.push({
+        text: `”${item.text}”`,
+        depth,
+        clickGroup,
+        refs: [],
+        isQuote: true,
+      });
+      continue;
+    }
+
+    let clickGroup;
     if (item.animate) {
       counter.value++;
       clickGroup = counter.value;
+      lastClickGroup = clickGroup;
+    } else {
+      // Non-++ bullet: attach to the most recent click group (or null = instant
+      // if no ++ bullet has appeared yet on this slide)
+      clickGroup = lastClickGroup;
     }
 
     result.push({
@@ -294,6 +324,7 @@ function flattenBullets(items, depth, inheritedClickGroup, counter) {
       depth,
       clickGroup,
       refs: item.refs || [],
+      isQuote: false,
     });
 
     if (item.children && item.children.length > 0) {
@@ -312,12 +343,20 @@ function renderBulletGroup(slide, flatParas, x, y, w, objectName) {
 
   for (let i = 0; i < flatParas.length; i++) {
     const para = flatParas[i];
-    const isSubBullet = para.depth > 0;
-    const textColor = isSubBullet ? C.SECONDARY : C.BODY;
-    const fontSize = isSubBullet ? 12 : 13;
-    const bulletColor = isSubBullet ? C.SUB_DOT : C.BULLET_DOT;
+    const fontSize = 13;
+    const bulletColor = C.BULLET_DOT;
 
-    const runs = parseInline(para.text, textColor, fontSize);
+    let runs;
+    if (para.isQuote) {
+      // Quote: same font/style as regular bullets, orange highlight + quotation marks
+      runs = parseInline(para.text, C.BODY, fontSize);
+      // Apply highlight to all runs
+      for (const run of runs) {
+        run.options = { ...run.options, highlight: C.QUOTE_BG };
+      }
+    } else {
+      runs = parseInline(para.text, C.BODY, fontSize);
+    }
 
     // Append ref markers
     if (para.refs && para.refs.length > 0) {
@@ -346,12 +385,7 @@ function renderBulletGroup(slide, flatParas, x, y, w, objectName) {
     allRuns.push(...runs);
   }
 
-  // Estimate height: ~0.28" per top-level, 0.24" per sub-level (includes spacing)
-  let h = 0;
-  for (const para of flatParas) {
-    h += para.depth > 0 ? 0.24 : 0.28;
-  }
-  h = Math.max(h, 0.3);
+  let h = Math.max(flatParas.length * 0.28, 0.3);
 
   slide.addText(allRuns, {
     x, y, w, h,
@@ -399,35 +433,40 @@ function renderBody(slide, items, startY, xOffset, maxW, slideIndex, namePrefix)
 // Non-bullet body item renderers (quote, code, image)
 // ---------------------------------------------------------------------------
 function renderQuote(slide, item, y, x, w) {
-  const quoteH = 0.35;
+  const padV = 0.06;
+  const padH = 0.12;
+  const textH = 0.3;
+  const blockH = textH + padV * 2;
 
-  // Warm left border
-  slide.addShape('rect', {
-    x: x, y: y + 0.02, w: 0.03, h: quoteH,
-    fill: { color: C.WARM },
+  // Light orange background pill
+  slide.addShape('roundRect', {
+    x, y, w, h: blockH,
+    rectRadius: 0.04,
+    fill: { color: C.QUOTE_BG },
     line: { type: 'none' },
   });
 
-  // Quote text (italic)
+  // Quote text \u2014 not italic, with curly quotation marks
   slide.addText(`\u201C${item.text}\u201D`, {
-    x: x + 0.12, y, w: w - 0.12, h: quoteH,
-    fontFace: FONT_BODY, fontSize: 13, italic: true,
+    x: x + padH, y: y + padV, w: w - padH * 2, h: textH,
+    fontFace: FONT_BODY, fontSize: 13, italic: false,
     color: C.BODY, valign: 'middle', wrap: true,
   });
 
-  y += quoteH;
+  y += blockH;
 
   // Attribution
   if (item.attribution) {
+    y += 0.03;
     slide.addText(`\u2014 ${item.attribution}`, {
-      x: x + 0.12, y, w: w - 0.12, h: 0.2,
+      x: x + padH, y, w: w - padH * 2, h: 0.2,
       fontFace: FONT_BODY, fontSize: 11,
       color: C.SECONDARY, valign: 'middle',
     });
     y += 0.2;
   }
 
-  y += 0.05;
+  y += 0.06;
   return y;
 }
 

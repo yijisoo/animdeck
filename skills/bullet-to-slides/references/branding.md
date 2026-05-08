@@ -16,7 +16,7 @@ All colors are 6-character hex (no `#` prefix) for PptxGenJS compatibility.
 | Primary on Dark | `FFFFFF` | Titles on dark slides |
 | Primary on Light | `111111` | Titles on light slides |
 | Body | `333333` | Body text on light slides |
-| Secondary | `666666` | Sub-bullets on light slides |
+| Secondary | `666666` | Quote attribution text |
 | Muted | `AAAAAA` | References, slide numbers, captions |
 
 ### Accent Colors
@@ -32,8 +32,7 @@ All colors are 6-character hex (no `#` prefix) for PptxGenJS compatibility.
 |------|-----|-------|
 | Border | `E5E5E5` | Dividers, column separators on light slides |
 | Code BG | `1A1A1A` | Code block background |
-| Bullet Dot | `CCCCCC` | Primary bullet dots |
-| Sub Dot | `DDDDDD` | Sub-bullet dots |
+| Bullet Dot | `CCCCCC` | All bullet dots (top-level and sub-bullets) |
 
 ## Typography
 
@@ -47,7 +46,7 @@ Fallback: Calibri (available on all PowerPoint installations).
 | Content title | Inter | 22 | Bold | `111111` |
 | Subtitle | Inter | 15 | Light (300) | `A0A0A0` |
 | Body bullet | Inter | 13 | Regular | `333333` |
-| Sub-bullet | Inter | 12 | Regular | `666666` |
+| Sub-bullet | Inter | 13 | Regular | `333333` (same as top-level — only indent differs) |
 | Bold text | Inter | inherit | SemiBold (600) | `111111` |
 | Code (inline) | Courier New | 11 | Regular | `0097A7` |
 | Code (block text) | Courier New | 11 | Regular | `E0E0E0` |
@@ -82,7 +81,7 @@ SF Mono/Fira Code because Courier New is universally available in PowerPoint.
 - Title: Inter 22pt bold, `111111`, x=0.56, y=0.28
 - Body area: starts y=1.0, x=0.56, width=8.88"
 - Bullet dot: 5pt round, `CCCCCC`, before each bullet
-- Sub-bullet dot: 4pt round, `DDDDDD`, indented 0.24"
+- Sub-bullet dot: 5pt round, `CCCCCC` (same as top-level — only indent differs)
 - Reference footer: Inter 8pt, `AAAAAA`, bottom, x=0.56, thin border-top `E5E5E5`
 - Slide number: Inter 9pt, `BBBBBB`, bottom-right
 
