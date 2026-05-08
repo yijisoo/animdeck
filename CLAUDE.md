@@ -10,7 +10,7 @@ After editing any source file, sync to the Claude Code plugin cache:
 npm run sync
 ```
 
-The cache at `~/.claude/plugins/cache/local-plugins/md-anim-slides/<version>/` is **not** auto-refreshed on source edits — the sync is required for changes to take effect in `/slides`. If the version in `package.json` and `.claude-plugin/plugin.json` is bumped, also update the cache path inside the `sync` script in `package.json`.
+The cache at `~/.claude/plugins/cache/local-plugins/animdeck/<version>/` is **not** auto-refreshed on source edits — the sync is required for changes to take effect in `/slides`. If the version in `package.json` and `.claude-plugin/plugin.json` is bumped, also update the cache path inside the `sync` script in `package.json`.
 
 ## Architecture
 

@@ -1,7 +1,7 @@
 {
-  "name": "md-anim-slides",
+  "name": "animdeck",
   "version": "1.0.0",
-  "description": "Convert bullet-listed notes into branded PowerPoint presentations",
+  "description": "Convert bullet-listed notes into animated PowerPoint presentations",
   "author": {
     "name": "Ji Soo Yi"
   },

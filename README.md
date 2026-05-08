@@ -1,21 +1,15 @@
-# md-anim-slides
+# animdeck
 
-A Claude Code plugin that converts bullet-list markdown into PowerPoint presentations with **click-to-appear animations**.
+The only markdown tool that produces **animated .pptx** files — real PowerPoint with click-to-appear animations, not web slides.
 
-## What makes this different
-
-- **Real .pptx output** -- editable text boxes, not images
-- **Click-to-appear animations** -- `++` bullets appear one-by-one on click (the only markdown-to-pptx tool that does this)
-- **6 slide types** -- title, section, content, image, two-column, comparison
-- **Deterministic rendering** -- same input always produces the same output
-- **Inline content** -- bold, italic, code, quotes, code blocks, images, references
+Every other markdown-to-presentation tool does one of two things: produces web slides (Slidev, reveal.js) that break in email chains and conference rooms, or produces flat `.pptx` files (Marp, Pandoc, md2pptx) with no animations. animdeck does neither — it injects OOXML `<p:timing>` directly into the zip to produce editable, animated PowerPoint files from a few bullet points in a Claude Code conversation.
 
 ## Install
 
 Requires [Claude Code](https://docs.anthropic.com/en/docs/claude-code) and Node.js.
 
 ```bash
-claude plugin add github:yijisoo/md-anim-slides
+claude plugin add github:yijisoo/animdeck
 ```
 
 ## Usage
@@ -56,6 +50,31 @@ This produces 4 slides:
 3. **Content** (light) -- static bullet, 2 animated bullets that appear on click, quote, reference
 4. **Comparison** (light) -- two columns with "vs" badge
 
+Bullets marked `++` appear one-by-one on click. A `++` bullet and its children appear together as a single click. All other content is visible immediately.
+
+## What makes this different
+
+- **Real .pptx output** -- editable text boxes, not images
+- **Click-to-appear animations** -- `++` bullets appear one-by-one on click (no other markdown-to-pptx tool does this)
+- **6 slide types** -- title, section, content, image, two-column, comparison
+- **Deterministic rendering** -- same input always produces the same output
+- **Inline content** -- bold, italic, code, quotes, code blocks, images, references
+
+## Example decks
+
+Three example decks are in [`examples/`](examples/):
+
+| File | What it shows |
+|------|---------------|
+| [`lecture.md`](examples/lecture.md) | Academic lecture: sections, animated bullets, quotes, references, `\|vs\|` and `\|split\|` slides |
+| [`devtalk.md`](examples/devtalk.md) | Developer talk: code blocks, animated bullets, comparison slides |
+| [`comparison.md`](examples/comparison.md) | Data-heavy comparison: `\|vs\|`, `\|split\|`, nested animated bullets |
+
+Run any of them:
+```
+/slides examples/lecture.md
+```
+
 ## Notation reference
 
 | Notation | Effect |
@@ -94,7 +113,7 @@ The JSON step is the validation and iteration point -- Claude checks for overflo
 
 ## Development
 
-If you've installed this plugin via a local-directory marketplace (e.g. for in-place editing), Claude Code maintains a separate cache at `~/.claude/plugins/cache/local-plugins/md-anim-slides/<version>/` that does **not** auto-refresh when you edit source files. Edits to `skills/`, `commands/`, or references will not take effect until the cache is updated.
+If you've installed this plugin via a local-directory marketplace (e.g. for in-place editing), Claude Code maintains a separate cache at `~/.claude/plugins/cache/local-plugins/animdeck/<version>/` that does **not** auto-refresh when you edit source files. Edits to `skills/`, `commands/`, or references will not take effect until the cache is updated.
 
 After editing, run:
 
