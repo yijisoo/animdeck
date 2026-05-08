@@ -21,11 +21,11 @@ Two-phase pipeline triggered by `/slides`:
 
 Key files:
 - `commands/slides.md` — slash command definition; declares allowed tools and the two modes (help / generate)
-- `skills/bullet-to-slides/SKILL.md` — parsing rules, validation rules, render invocation, QA process
-- `skills/bullet-to-slides/references/slide-renderer.js` — Node.js renderer; takes `input.json output.pptx`; also writes `output.animation.json`
-- `skills/bullet-to-slides/references/animation-injector.js` — post-processes the .pptx zip to inject OOXML timing
-- `skills/bullet-to-slides/references/branding.md` — complete visual spec (colors, typography, layout coordinates)
-- `skills/bullet-to-slides/references/notation-reference.md` — user-facing syntax reference (printed by `/slides help`)
+- `skills/slides/SKILL.md` — parsing rules, validation rules, render invocation, QA process
+- `skills/slides/references/slide-renderer.js` — Node.js renderer; takes `input.json output.pptx`; also writes `output.animation.json`
+- `skills/slides/references/animation-injector.js` — post-processes the .pptx zip to inject OOXML timing
+- `skills/slides/references/branding.md` — complete visual spec (colors, typography, layout coordinates)
+- `skills/slides/references/notation-reference.md` — user-facing syntax reference (printed by `/slides help`)
 - `.claude-plugin/plugin.json` — plugin manifest (name, version, author)
 
 ## Slide Types

@@ -1,5 +1,5 @@
 ---
-name: bullet-to-slides
+name: slides
 description: >
   Convert bullet-listed notes into branded PowerPoint slides. Use when
   the user asks to "make slides", "create a presentation", "convert notes to
@@ -97,10 +97,10 @@ Save the validated JSON to a temp file, then run:
 
 ```bash
 # Step 1: Render slides (also writes output.animation.json manifest)
-node ${CLAUDE_PLUGIN_ROOT}/skills/bullet-to-slides/references/slide-renderer.js input.json output.pptx
+node ${CLAUDE_PLUGIN_ROOT}/skills/slides/references/slide-renderer.js input.json output.pptx
 
 # Step 2: Inject click-to-appear animations for ++ bullets
-node ${CLAUDE_PLUGIN_ROOT}/skills/bullet-to-slides/references/animation-injector.js output.pptx output.animation.json
+node ${CLAUDE_PLUGIN_ROOT}/skills/slides/references/animation-injector.js output.pptx output.animation.json
 ```
 
 Ensure pptxgenjs is installed before rendering:
