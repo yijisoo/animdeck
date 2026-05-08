@@ -82,17 +82,14 @@ Child bullets (deeper indentation under a bullet) become `children` array on the
 
 After parsing, check the JSON before rendering:
 
-1. **Content slides**: if `body.length > 6`, auto-split into continuation slides
-2. **Comparison/split**: if either column has `> 5` items, auto-split
+1. **Content slides**: if `body.length > 6`, **warn the user** — do NOT auto-split
+2. **Comparison/split**: if either column has `> 5` items, **warn the user** — do NOT auto-split
 3. **Code blocks**: if `lines.length > 12`, warn the user (split or reduce font)
 4. **Long bullets**: if any bullet `text.length > 80`, warn (may wrap)
 5. **Image paths**: check that local file paths exist
 6. **Reference consistency**: verify all `[N]` refs in bullets have matching entries in `references`
 
-When auto-splitting:
-- Set `continuation: {"part": N, "of": M}` on each resulting slide
-- Keep animation groups together (all `++` items in a sequence stay on the same slide)
-- References stay on the slide where they're cited
+**Never auto-split slides.** If overflow is detected, report which slides are affected and let the user decide how to fix the source `.md` file.
 
 ## Rendering
 
@@ -148,7 +145,7 @@ When they run `/slides help slides`, print a brief description of each slide typ
 1. Read input (text or file path)
 2. Parse bullets → JSON (following rules above)
 3. Validate JSON (overflow, references, images)
-4. Report any issues to user, auto-split if needed
+4. Report any overflow/issues to user — never auto-split
 5. Save JSON to temp file
 6. Run `slide-renderer.js input.json output.pptx` (also writes animation manifest)
 7. Run `animation-injector.js output.pptx output.animation.json` (injects click-to-appear for `++` bullets)
