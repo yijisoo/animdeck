@@ -6,7 +6,7 @@
  * Usage: node slide-renderer.js input.json output.pptx
  *
  * Handles slide types: title, section, content, comparison, split, image
- * Default theme: teal/warm accent palette (see branding.md)
+ * Default theme: indigo/warm accent palette (see branding.md)
  * PptxGenJS v4.x API
  *
  * Bullets are rendered as paragraphs within a single text box per group,
@@ -24,40 +24,40 @@ const PptxGenJS = require('pptxgenjs');
 // ---------------------------------------------------------------------------
 const C = {
   // Backgrounds
-  DARK_BG:         '050505',
-  LIGHT_BG:        'FFFFFF',
+  DARK_BG:         '0F172A',  // Slate 900 — deep navy
+  LIGHT_BG:        'FAFAFA',  // off-white, softer than pure white
 
   // Text
-  TEXT_ON_DARK:    'FFFFFF',
-  TEXT_ON_LIGHT:   '111111',
-  BODY:            '333333',
-  SECONDARY:       '666666',
-  MUTED:           'AAAAAA',
-  SLIDE_NUM:       'BBBBBB',
-  FOOTER:          '555555',
-  SUBTITLE:        'A0A0A0',
+  TEXT_ON_DARK:    'F8FAFC',  // Slate 50
+  TEXT_ON_LIGHT:   '111827',  // Gray 900
+  BODY:            '374151',  // Gray 700
+  SECONDARY:       '6B7280',  // Gray 500
+  MUTED:           '9CA3AF',  // Gray 400
+  SLIDE_NUM:       '9CA3AF',  // Gray 400
+  FOOTER:          '6B7280',  // Gray 500
+  SUBTITLE:        '94A3B8',  // Slate 400
 
   // Accents
-  TEAL:            '00E5FF',
-  TEAL_DEEP:       '2979FF',
-  WARM:            'FF9E80',
-  WARM_DEEP:       'FF6E40',
-  TEAL_LABEL:      '0097A7',
-  WARM_LABEL:      'E65100',
-  QUOTE_BG:        'FFF3E0',  // light orange background for quote blocks
+  TEAL:            '818CF8',  // Indigo 400
+  TEAL_DEEP:       '6366F1',  // Indigo 500
+  WARM:            'FB923C',  // Orange 400
+  WARM_DEEP:       'F97316',  // Orange 500
+  TEAL_LABEL:      '6366F1',  // Indigo 500
+  WARM_LABEL:      'EA580C',  // Orange 600
+  QUOTE_BG:        'EEF2FF',  // Indigo 50 — subtle tint for quote blocks
 
   // Structural
-  BORDER:          'E5E5E5',
-  CODE_BG:         '1A1A1A',
-  BULLET_DOT:      'CCCCCC',
-  SUB_DOT:         'DDDDDD',
-  LOGO_GRAY:       '777777',
-  VS_TEXT:         '0097A7',
-  CAPTION:         '999999',
+  BORDER:          'E2E8F0',  // Slate 200
+  CODE_BG:         '1E293B',  // Slate 800
+  BULLET_DOT:      'CBD5E1',  // Slate 300
+  SUB_DOT:         'CBD5E1',  // Slate 300
+  LOGO_GRAY:       '94A3B8',  // Slate 400
+  VS_TEXT:         '6366F1',  // Indigo 500
+  CAPTION:         '94A3B8',  // Slate 400
 
   // Code text
-  CODE_TEXT:       'E0E0E0',
-  CODE_INLINE:     '0097A7',
+  CODE_TEXT:       'E2E8F0',  // Slate 200
+  CODE_INLINE:     '818CF8',  // Indigo 400
 };
 
 // Slide dimensions
