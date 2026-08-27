@@ -1,3 +1,7 @@
 node_modules/
 *.pptx
 *.animation.json
+
+# OMC / agent runtime state — local operational artifacts, never project source.
+.omc/
+**/.omc/
