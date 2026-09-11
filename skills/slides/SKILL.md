@@ -103,9 +103,9 @@ node ${CLAUDE_PLUGIN_ROOT}/skills/slides/references/slide-renderer.js input.json
 node ${CLAUDE_PLUGIN_ROOT}/skills/slides/references/animation-injector.js output.pptx output.animation.json
 ```
 
-Ensure pptxgenjs is installed before rendering:
+Ensure pptxgenjs and image-size are installed before rendering:
 ```bash
-cd ${CLAUDE_PLUGIN_ROOT} && npm ls pptxgenjs 2>/dev/null || npm install pptxgenjs
+cd ${CLAUDE_PLUGIN_ROOT} && npm ls pptxgenjs image-size 2>/dev/null || npm install pptxgenjs image-size
 ```
 
 Read `references/branding.md` for the full visual specification.
