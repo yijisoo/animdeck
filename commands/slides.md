@@ -29,7 +29,7 @@ If $ARGUMENTS is not "help":
 4. Validate: check overflow, references, image paths
 5. If issues found, report to user and iterate
 6. Write JSON to a temp file
-7. Ensure pptxgenjs is installed: `cd ${CLAUDE_PLUGIN_ROOT} && npm ls pptxgenjs 2>/dev/null || npm install pptxgenjs`
+7. Ensure pptxgenjs and image-size are installed: `cd ${CLAUDE_PLUGIN_ROOT} && npm ls pptxgenjs image-size 2>/dev/null || npm install pptxgenjs image-size`
 8. Render: `node ${CLAUDE_PLUGIN_ROOT}/skills/slides/references/slide-renderer.js <json> <output.pptx>`
 9. QA: convert to images and inspect if tools available
 10. Report the output file path to the user
